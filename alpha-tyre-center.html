@@ -2254,7 +2254,7 @@ function setProdImgPreview(src){
 
 function clearProdImg(){
   document.getElementById('pf-img-data').value = '';
-  document.getElementById('pf-img-inp').value  = '';
+  const _inp=document.getElementById('pf-img-inp'); if(_inp) _inp.value='';
   const preview = document.getElementById('prod-img-preview');
   const placeholder = document.getElementById('prod-img-placeholder');
   const delBtn = document.getElementById('prod-img-del');
