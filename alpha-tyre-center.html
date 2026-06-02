@@ -299,6 +299,7 @@ input[type="date"]::-webkit-datetime-edit-year-field{
   </div>
   <div id="gas-sync-status" style="font-size:10px;color:#8aa0ba;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);border-radius:6px;padding:3px 8px;cursor:pointer;white-space:nowrap" onclick="gasPullAll()" title="ກົດເພື່ອ sync ດຽວນີ້">⚫ ກຳລັງເລີ່ມ...</div>
         <button id="gas-toggle-btn" class="tb-btn" onclick="toggleSync()">🔄 Sync ON</button>
+        <button class="tb-btn" onclick="gasPushAllProds()" style="border:1px solid #4caf50;color:#4caf50;background:transparent;font-size:11px;padding:3px 8px;border-radius:5px;cursor:pointer">⬆ Push ສິນຄ້າ</button>
         <div class="topbar-right">
     <div class="rate-inline">
       <span>1 ບາດ=</span>
@@ -7180,6 +7181,21 @@ async function gasUpdateCiJob(id, field, value) {
 }
 
 async function gasSetMeta(key, value) { return gasCall('setMeta', { key, value }); }
+
+// ─── PUSH ALL EXISTING PRODS ──────────────────────────────
+async function gasPushAllProds() {
+  if (!GAS_ENABLED || !GAS_URL || GAS_URL.startsWith('YOUR_')) {
+    alert('GAS ຍັງບໍ່ໄດ້ຕັ້ງຄ່າ'); return;
+  }
+  setSyncStatus('syncing', 'ກຳລັງ push ສິນຄ້າ...');
+  let ok = 0;
+  for (const p of prods) {
+    const res = await gasSaveProd(p);
+    if (res) ok++;
+  }
+  setSyncStatus('ok', 'Push ' + ok + '/' + prods.length + ' ລາຍການ');
+  setTimeout(() => setSyncStatus('ok', 'Sync: ' + new Date().toLocaleTimeString('lo-LA')), 3000);
+}
 
 // ─── AUTO-SYNC LOOP ───────────────────────────────────────
 function startAutoSync() {
