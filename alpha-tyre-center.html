@@ -2186,10 +2186,12 @@ function openProdForm(editCode){
     document.getElementById('pf-sk').value    = p.sk||'';
     document.getElementById('pf-st').value    = p.st||'';
     document.getElementById('pf-edit-code').value = p.c;
-    document.getElementById('pf-img-data').value  = p.img||'';
+    // ໂຫຼດຮູບຈາກ localStorage (ເກັບ local ເພາະ Sheets ບໍ່ຮອງຮັບ base64)
+    const localImg = localStorage.getItem('prodImg_' + p.c) || p.img || '';
+    document.getElementById('pf-img-data').value  = localImg;
     document.getElementById('pf-del-btn').style.display = '';
     // Preview image
-    if(p.img){ setProdImgPreview(p.img); } else { clearProdImg(); }
+    if(localImg){ setProdImgPreview(localImg); } else { clearProdImg(); }
   } else {
     document.getElementById('prod-form-title').textContent = '➕ ເພີ່ມສິນຄ້າໃໝ່';
     document.getElementById('pf-code').value  = '';
@@ -2312,6 +2314,10 @@ function saveProd(){
     showHoToast('✅ ເພີ່ມສິນຄ້າ', code+' · '+name, true);
   }
 
+  // ເກັບຮູບໃນ localStorage (Sheets ບໍ່ຮອງຮັບ base64 ຂະໜາດໃຫຍ່)
+  if(obj.img){ localStorage.setItem('prodImg_' + obj.c, obj.img); }
+  else { localStorage.removeItem('prodImg_' + obj.c); }
+
   // Push to Google Sheets immediately
   gasSaveProd(obj).then(res => {
     if(res && res.ok){
@@ -2338,6 +2344,7 @@ function deleteProd(){
   if(!p) return;
   if(!confirm('ລຶບສິນຄ້າ "'+p.n+'" ແທ້ບໍ?')) return;
   prods.splice(prods.indexOf(p), 1);
+  localStorage.removeItem('prodImg_' + editCode); // ລຶບຮູບອອກຈາກ localStorage ດ້ວຍ
   closeProdForm();
   renderInv(prods);
   showHoToast('🗑 ລຶບສິນຄ້າ', p.c+' · '+p.n, false);
@@ -7068,10 +7075,13 @@ async function gasPullAll() {
   if (data.prods && data.prods.length) {
     prods.length = 0;
     data.prods.forEach(p => {
+      // ຮູບເກັບໃນ localStorage ເພາະ Sheets ບໍ່ຮອງຮັບ base64 ຂະໜາດໃຫຍ່
+      const storedImg = localStorage.getItem('prodImg_' + p.c) || null;
       prods.push({
         c: p.c, n: p.n, u: p.u, cat: p.cat,
         stk: +p.stk || 0, bk: +p.bk || 0, bt: +p.bt || 0,
         sk: +p.sk || 0, st: +p.st || 0,
+        img: storedImg,
       });
     });
     renderInv(prods);
