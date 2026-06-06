@@ -2312,6 +2312,15 @@ function saveProd(){
     showHoToast('✅ ເພີ່ມສິນຄ້າ', code+' · '+name, true);
   }
 
+  // Push to Google Sheets immediately
+  gasSaveProd(obj).then(res => {
+    if(res && res.ok){
+      setSyncStatus('ok', 'Sync: ບັນທຶກສິນຄ້າແລ້ວ');
+    } else {
+      setSyncStatus('error', 'ບັນທຶກ Sheets ບໍ່ສຳເລັດ');
+    }
+  }).catch(() => setSyncStatus('error', 'ບັນທຶກ Sheets ບໍ່ສຳເລັດ'));
+
   // Refresh category filter
   const cats = [...new Set(prods.map(p=>p.cat).filter(Boolean))];
   const sel = document.getElementById('filter-cat');
@@ -2332,6 +2341,8 @@ function deleteProd(){
   closeProdForm();
   renderInv(prods);
   showHoToast('🗑 ລຶບສິນຄ້າ', p.c+' · '+p.n, false);
+  // Sync delete to Google Sheets
+  gasDeleteProd(editCode).catch(() => setSyncStatus('error', 'ລຶບ Sheets ບໍ່ສຳເລັດ'));
 }
 // ── end product crud ──
 function renderLowStockBanner(){
