@@ -2562,8 +2562,8 @@ function renderPendingList(q){
   tbl.innerHTML=`<div class="tbl-wrap"><table>
     <thead><tr>
       <th>ເລກທີ</th><th>ວັນທີ</th><th>ລູກຄ້າ</th><th>ທະບຽນ</th><th>ຊະນິດ</th><th>ຜູ້ອອກ</th>
-      <th style="text-align:right">ຍອດ (ກີບ)</th>
-      <th style="text-align:right">ຊຳລະແລ້ວ</th>
+      <th style="text-align:right">ຍອດ</th>
+      <th style="text-align:right">ຊຳລະແລ້ວ (ກີບ)</th>
       <th style="text-align:right">ຍອດຄ້າງ (ກີບ)</th>
       <th>ລາຍລະອຽດ</th><th>ດຳເນີນການ</th>
     </tr></thead>
@@ -2661,8 +2661,16 @@ function renderSaleLookup(q){
     </tr>`).join('')}</tbody>
   </table></div>${list.length>20?`<div style="font-size:11px;color:var(--text3);margin-top:6px;text-align:center">ສະແດງ 20 ໃນ ${list.length} ລາຍການ — ກະລຸນາລະອຽດຄຳຄົ້ນ</div>`:''}`;
 }
-function netKip(){const t=parseFloat(document.getElementById('ss-net').textContent.replace(/[^0-9]/g,''))||0;return cur==='THB'?t*THB:t;}
+function netKip(){const t=parseFloat(document.getElementById('ss-net').textContent.replace(/[^0-9]/g,''))||0;return cur==='THB'?Math.round(t*THB):cur==='USD'?Math.round(t*USD):t;}
 function netOrig(){return parseFloat(document.getElementById('ss-net').textContent.replace(/[^0-9]/g,''))||0;}
+// KIP equivalent for any invoice (ໃຊ້ທົ່ວໄປ)
+function invToKip(inv){
+  if(!inv) return 0;
+  const no=parseFloat(inv.netOrig)||0, net=parseFloat(inv.net)||0;
+  if(inv.cur==='THB') return Math.round(no*THB);
+  if(inv.cur==='USD') return Math.round(no*USD);
+  return net||no;
+}
 function confirmSale(){
   if(saleLocked) return;
   if(!rows.length){alert('ກະລຸນາເພີ່ມລາຍການສິນຄ້າກ່ອນ');return;}
@@ -3154,7 +3162,7 @@ function printSingleBillPayHistory(docno,inv){
   <h2>🔧 Alpha Tyre Center — ປະຫວັດການຊຳລະ</h2>
   <div class="sub">ໃບບິນ: <strong>${docno}</strong> &nbsp;·&nbsp; ລູກຄ້າ: <strong>${inv.cust||'—'}</strong> &nbsp;·&nbsp; ວັນທີຊື້: ${fDateLao(inv.date)}</div>
   <div class="boxes">
-    <div class="box" style="border-color:#f5bcbc"><div class="l" style="color:#A32D2D">ຍອດໃບທັງໝົດ</div><div class="v" style="color:#A32D2D">${f(inv.net||0)} ກີບ</div></div>
+    <div class="box" style="border-color:#f5bcbc"><div class="l" style="color:#A32D2D">ຍອດໃບທັງໝົດ</div><div class="v" style="color:#A32D2D">${f(inv.netOrig||inv.net||0)} ${inv.cur==='THB'?'ບາດ':inv.cur==='USD'?'$':'ກີບ'}</div></div>
     <div class="box" style="border-color:#b7e0d6"><div class="l" style="color:#0F6E56">ຮັບແລ້ວລວມ</div><div class="v" style="color:#0F6E56">${f(totalPaid)} ກີບ</div></div>
     <div class="box" style="border-color:${remaining>0?'#f0d89a':'#b7e0d6'}"><div class="l" style="color:${remaining>0?'#BA7517':'#0F6E56'}">${remaining>0?'ຍອດຄ້າງ':'ຊຳລະຄົບ'}</div><div class="v" style="color:${remaining>0?'#BA7517':'#0F6E56'}">${f(remaining)} ກີບ</div></div>
   </div>
@@ -3312,19 +3320,21 @@ function showBillDetail(docno){
     </div>
     <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">ລາຍການສິນຄ້າ</div>
   `;
+  const bdLb = inv.cur==='THB'?'ບາດ':inv.cur==='USD'?'$':'ກີບ';
+  const bdNetOrig = inv.netOrig||inv.net;
   if(inv.rows&&inv.rows.length){
     html+=`<div class="tbl-wrap"><table>
-      <thead><tr><th>#</th><th>ລາຍການ</th><th>ຈຳ</th><th>ໜ່ວຍ</th><th style="text-align:right">ລາຄາ</th><th style="text-align:right">ສຸດທິ</th></tr></thead>
+      <thead><tr><th>#</th><th>ລາຍການ</th><th>ຈຳ</th><th>ໜ່ວຍ</th><th style="text-align:right">ລາຄາ (${bdLb})</th><th style="text-align:right">ສຸດທິ (${bdLb})</th></tr></thead>
       <tbody>${inv.rows.map((r,i)=>`<tr>
         <td>${i+1}</td><td>${r.name||r.code||'—'}</td><td>${r.qty}</td><td>${r.unit||'—'}</td>
         <td style="text-align:right">${f(r.price)}</td>
-        <td style="text-align:right;color:var(--green);font-weight:600">${f(r.price*r.qty-r.da)}</td>
+        <td style="text-align:right;color:var(--green);font-weight:600">${f(r.price*r.qty-(r.da||0))}</td>
       </tr>`).join('')}</tbody>
     </table></div>`;
   } else {
     html+=`<div style="color:var(--text3);font-size:12px;text-align:center;padding:12px">ບໍ່ມີລາຍການ</div>`;
   }
-  html+=`<div style="text-align:right;margin-top:12px;font-size:15px;font-weight:700;color:var(--green)">ລວມ: ${f(inv.net)} ກີບ</div>`;
+  html+=`<div style="text-align:right;margin-top:12px;font-size:15px;font-weight:700;color:var(--green)">ລວມ: ${f(bdNetOrig)} ${bdLb}${inv.cur==='THB'?' (≈'+f(inv.net)+' ກີບ)':''}</div>`;
   document.getElementById('bdm-content').innerHTML=html;
   openModal('bill-detail-modal');
 }
@@ -3483,7 +3493,7 @@ function showPayHistory(docno){
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
       <div style="background:var(--red-bg);border-radius:8px;padding:10px;text-align:center;border:1px solid #f5bcbc">
         <div style="font-size:10px;color:var(--red);margin-bottom:3px">ຍອດໃບໜີ້ທັງໝົດ</div>
-        <div style="font-size:15px;font-weight:700;color:var(--red)">${f(inv.net)} ກີບ</div>
+        <div style="font-size:15px;font-weight:700;color:var(--red)">${f(inv.netOrig||inv.net)} ${inv.cur==='THB'?'ບາດ':inv.cur==='USD'?'$':'ກີບ'}</div>
       </div>
       <div style="background:var(--green-bg);border-radius:8px;padding:10px;text-align:center;border:1px solid #b7e0d6">
         <div style="font-size:10px;color:var(--green);margin-bottom:3px">ຮັບແລ້ວທັງໝົດ</div>
