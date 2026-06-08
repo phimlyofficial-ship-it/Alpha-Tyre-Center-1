@@ -4877,6 +4877,7 @@ function saveCust(){
   } else {
     customers.push(obj);
   }
+  gasSaveCustomer(obj).catch(()=>setSyncStatus('error','ບັນທຶກລູກຄ້າບໍ່ສຳເລັດ'));
   closeCustForm();
   renderCustList();
 }
@@ -4886,6 +4887,7 @@ function deleteCust(code){
   if(!c) return;
   if(!confirm(`ລຶບລູກຄ້າ "${c.name}" (${code}) ອອກ?`)) return;
   customers = customers.filter(x=>x.code!==code);
+  gasDeleteCustomer(code).catch(()=>setSyncStatus('error','ລຶບລູກຄ້າບໍ່ສຳເລັດ'));
   renderCustList();
 }
 
