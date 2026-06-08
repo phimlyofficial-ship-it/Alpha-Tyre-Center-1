@@ -6459,7 +6459,7 @@ function poShowAcDropForCi(inp, idx2){
         const ui = tr.querySelector('.ci-unit');
         const pi = tr.querySelector('.ci-price');
         if(ui) ui.value = item.dataset.unit;
-        if(pi) pi.value = item.dataset.price;
+        if(pi){ pi.value = item.dataset.price; ciRows[idx2].price = parseFloat(item.dataset.price)||0; }
         if(qi){ qi.focus(); qi.select(); }
       }
       drop.style.display='none';
@@ -6586,7 +6586,9 @@ function ciToSale(id){
 
     // Fill items from check-in
     rows = [];
-    (j.items||[]).forEach(item=>{
+    // parse ຖ້າ items ຍັງເປັນ string (ຈາກ Sheets)
+    const ciItems = typeof j.items==='string' ? (()=>{try{return JSON.parse(j.items);}catch(e){return [];}})() : (j.items||[]);
+    ciItems.forEach(item=>{
       if(!item.desc) return;
       const matched = prods.find(p=>p.n.toLowerCase()===item.desc.toLowerCase()||p.c.toLowerCase()===item.desc.toLowerCase());
       rows.push({
