@@ -7177,25 +7177,20 @@ async function gasPullAll() {
     if (data.meta.settleCnt2) settleCnt2 = parseInt(data.meta.settleCnt2) || settleCnt2;
     if (data.meta.poCnt)      poCnt      = parseInt(data.meta.poCnt)      || poCnt;
   }
-  // Safety: ຖ້າ record ຕົວຈິງຫຼາຍກວ່າ counter → ໃຊ້ record count + 1
-  if (data.invs)      sCnt       = Math.max(sCnt,       (data.invs.length      || 0) + 1);
-  if (data.recs)      pCnt       = Math.max(pCnt,       (data.recs.length      || 0) + 1);
-  if (data.settleRecs)settleCnt2 = Math.max(settleCnt2, (data.settleRecs.length|| 0) + 1);
-  if (data.purchases) poCnt      = Math.max(poCnt,      (data.purchases.length || 0) + 1);
-  // Refresh docno fields if visible
-  const sdEl = document.getElementById('s-docno');
-  if(sdEl && !saleLocked) sdEl.value = genDoc('INV', sCnt);
+  // Safety: ໃຊ້ max ລະຫວ່າງ Meta ແລະ record count ຕົວຈິງ (ສະເພາະຖ້າ Meta ນ້ອຍກວ່າ)
+  if (data.invs && data.invs.length >= sCnt)           sCnt       = data.invs.length + 1;
+  if (data.recs && data.recs.length >= pCnt)           pCnt       = data.recs.length + 1;
+  if (data.settleRecs && data.settleRecs.length >= settleCnt2) settleCnt2 = data.settleRecs.length + 1;
+  if (data.purchases && data.purchases.length >= poCnt) poCnt     = data.purchases.length + 1;
 
   _lastSync = Date.now();
   setSyncStatus('ok', 'Sync: ' + new Date().toLocaleTimeString('lo-LA'));
   if (typeof genReport === 'function') genReport();
-  // ອັບເດດ docno ຫຼັງ pull ໄດ້ counter ໃໝ່
+  // ອັບເດດ s-docno ຫຼັງ pull (ສະເພາະຖ້າ form ຍັງ unlock)
   const _sdEl = document.getElementById('s-docno');
   if (_sdEl && typeof saleLocked !== 'undefined' && !saleLocked) {
     _sdEl.value = genDoc('INV', sCnt);
   }
-  const _pdEl = document.getElementById('p-docno');
-  if (_pdEl) _pdEl.value = genDoc('REC', pCnt);
 }
 
 // ─── PUSH HELPERS ─────────────────────────────────────────
