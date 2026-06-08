@@ -7189,6 +7189,13 @@ async function gasPullAll() {
   _lastSync = Date.now();
   setSyncStatus('ok', 'Sync: ' + new Date().toLocaleTimeString('lo-LA'));
   if (typeof genReport === 'function') genReport();
+  // ອັບເດດ docno ຫຼັງ pull ໄດ້ counter ໃໝ່
+  const _sdEl = document.getElementById('s-docno');
+  if (_sdEl && typeof saleLocked !== 'undefined' && !saleLocked) {
+    _sdEl.value = genDoc('INV', sCnt);
+  }
+  const _pdEl = document.getElementById('p-docno');
+  if (_pdEl) _pdEl.value = genDoc('REC', pCnt);
 }
 
 // ─── PUSH HELPERS ─────────────────────────────────────────
