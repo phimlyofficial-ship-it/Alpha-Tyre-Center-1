@@ -2689,7 +2689,9 @@ function confirmSale(){
     plate:document.getElementById('s-plate').value,stype,staff:document.getElementById('s-staff').value,
     net:nk,cur,netOrig:no,rowCount:rows.length,rows:rows.map(r=>({...r})),ts:Date.now(),settled:false};
   invs.push(rec);
-  gasSaveInv(rec).then(()=>gasSetMeta('sCnt',sCnt));
+  confirmedDocno = docno; // save before sCnt++
+  sCnt++;
+  gasSaveInv(rec).then(()=>gasSetMeta('sCnt',sCnt)); // save sCnt ຫຼັງ ++ ແລ້ວ
 
   // Deduct stock for matched products
   rows.forEach(r => {
@@ -2703,9 +2705,6 @@ function confirmSale(){
   });
   renderInv(prods);
   rows.forEach(r=>{ const p=prods.find(x=>x.c===r.code||x.n===r.name); if(p) gasUpdateStock(p.c, p.stk); });
-
-  confirmedDocno = docno; // save before sCnt++
-  sCnt++;
   saleLocked = true;
   lockSaleForm();
   renderSaleLookup(document.getElementById('sale-lookup-inp').value);
@@ -3009,6 +3008,7 @@ function confirmPay(){
     totalKip:total,ts:Date.now()
   };
   recs.push(_rec);
+  pCnt++;
   gasSaveRec(_rec).then(()=>gasSetMeta('pCnt',pCnt));
   // Mark settle records as paid and check if invoices are fully settled
   selInvs.forEach(x=>{
@@ -3037,7 +3037,7 @@ function confirmPay(){
     }
   });
   alert('✅ ຢືນຢັນຮັບເງິນສຳເລັດ!\nເລກທີ: '+docno+'\nຈຳນວນສະລີບ: '+slips.length+' ໃບ');
-  pCnt++;initPay();
+  initPay(); // pCnt already incremented above
   renderPendingList('');
 }
 
@@ -3704,6 +3704,7 @@ function confirmSettle(){
     billCount:selBills.length,paid:false,ts:Date.now()
   };
   settleRecs.push(sr);
+  settleCnt2++;
   gasSaveSettle(sr).then(()=>gasSetMeta('settleCnt2',settleCnt2));
   selBills.forEach(b=>{
     const pinp=document.getElementById('pin-'+b.docno);
@@ -3721,7 +3722,6 @@ function confirmSettle(){
   const totalDebt=d.bills.reduce((s,b)=>Math.max(0,s+b.net-getTotalPaidForBill(b.docno)),0);
   const afterRemaining=Math.max(0,totalDebt-totalThisPay);
   alert('✅ ສ້າງໃບຕັດໜີ້ສຳເລັດ!\nເລກທີ: '+docno+'\nລູກຄ້າ: '+name+'\n'+selBills.length+' ໃບ · ຮັບ: '+f(totalThisPay)+' ກີບ'+(afterRemaining>0?'\nຄ້າງຕໍ່: '+f(afterRemaining)+' ກີບ':'\n✓ ຊຳລະຄົບ!')+'\n\nກະລຸນາໄປທີ່ "ຮັບເງິນ" ແລ້ວເລືອກ '+docno+' ເພື່ອຮັບຊຳລະ');
-  settleCnt2++;
   document.getElementById('settle-docno').value=genDoc('STL',settleCnt2);
   cancelSettle();
   populateSettleCust();
@@ -5907,8 +5907,8 @@ function savePurchase(){
     ts: Date.now()
   };
   purchases.push(po);
-  gasSavePurchase(po).then(()=>gasSetMeta('poCnt',poCnt));
   poCnt++;
+  gasSavePurchase(po).then(()=>gasSetMeta('poCnt',poCnt));
 
   // Update stock for matched products
   poRows.forEach(r => {
