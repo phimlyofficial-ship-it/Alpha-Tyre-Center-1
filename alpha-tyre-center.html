@@ -2112,7 +2112,7 @@ function switchTab(t){
   if(t==='debt')renderDebtPanel();
   if(t==='settle')initSettle();
   if(t==='handover')initHandover();
-  if(t==='payment')renderPendingList(document.getElementById('pending-search')?.value||'');
+  if(t==='payment'){initPay();renderPendingList(document.getElementById('pending-search')?.value||'');}
 }
 
 function openModal(id){document.getElementById(id).classList.add('open');}
@@ -2458,6 +2458,8 @@ function saleQuickCiStatus(id, val){
   renderSaleCiNotify();
   if(typeof renderCiSummary==='function') renderCiSummary();
   if(typeof renderCiQueue==='function')   renderCiQueue();
+  // Sync status ຂຶ້ນ Sheets
+  if(typeof gasSaveCiJob==='function') gasSaveCiJob(j).catch(()=>{});
 }
 // ── end sale-ci-notify ──
 function initSale(){
@@ -2713,10 +2715,22 @@ function confirmSale(){
   // Link back to CI job if opened from check-in
   if(window._ciPendingId){
     const cij = ciJobs.find(x=>x.id===window._ciPendingId);
-    if(cij){ cij.billed=true; cij.billedDocno=docno; if(cij.status!=='done') cij.status='done'; }
+    if(cij){
+      cij.billed=true; cij.billedDocno=docno;
+      if(cij.status!=='done') cij.status='done';
+      // Sync billed status ຂຶ້ນ Sheets
+      gasSaveCiJob(cij).catch(()=>{});
+    }
     window._ciPendingId = null;
     if(typeof renderCiSummary==='function') renderCiSummary();
     renderSaleCiNotify();
+    // ອັດຕະໂນມັດ switch ໄປໜ້າ ຮັບເງິນ ພາຍຫຼັງ 1 ວິ
+    setTimeout(()=>{
+      switchTab('payment');
+      // ໂຫຼດໃບນີ້ໄປໜ້າ ຮັບເງິນ ໂດຍກົງ
+      const inv = invs.find(x=>x.docno===docno);
+      if(inv) loadBillToPayment(docno);
+    }, 800);
   }
 }
 
@@ -6502,6 +6516,8 @@ function saveCiJob(){
     ciCnt++;
     showHoToast('🚗 ຮັບລົດສຳເລັດ', job.docno+' · '+plate+(job.custname?' · '+job.custname:''), true);
   }
+  // Sync ຂຶ້ນ Google Sheets ທັນທີ
+  gasSaveCiJob(job).catch(()=>setSyncStatus('error','ບັນທຶກ CI ບໍ່ສຳເລັດ'));
 
   closeCiForm();
   renderCiSummary();
@@ -7046,7 +7062,7 @@ checkPendingOwnerRequest();
 //  ປ່ຽນ GAS_URL ໃຫ້ຖືກຕ້ອງ
 // ============================================================
 
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwi9ZsAujbsOAuchGmquVrquyqZk2sp8OZsqYrgfKzTnfW6v8PIzOWSGSKOGvZ3yJ4e/exec'; // ← ປ່ຽນ URL ນີ້
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxK65Gj0h-jgpWxluu_Z_qRggruMRP708hGiMawPvzcW3qBuND8Ock8_6DHaQiBVn-Q/exec'; // ← ປ່ຽນ URL ນີ້
 let   GAS_ENABLED = true;   // toggle ໄດ້ໃນ settings
 let   _syncTimer  = null;
 let   _lastSync   = 0;
