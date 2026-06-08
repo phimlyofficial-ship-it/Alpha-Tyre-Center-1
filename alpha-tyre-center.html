@@ -3023,13 +3023,17 @@ function confirmPay(){
           const totalNow=getTotalPaidForBill(dn); // sr.paid=true now so it's included
           if(totalNow>=(inv.net||0)-1){
             inv.settled=true;
+            gasUpdateInv(inv.docno,'settled',true); // sync ຂຶ້ນ Sheets
           }
         }
       });
     } else {
       // Direct cash/transfer invoice — settle only non-credit bills immediately
       const inv=invs.find(ii=>ii.docno===x.docno);
-      if(inv && inv.stype!=='ເຊື່ອ') inv.settled=true;
+      if(inv && inv.stype!=='ເຊື່ອ'){
+        inv.settled=true;
+        gasUpdateInv(inv.docno,'settled',true); // sync ຂຶ້ນ Sheets
+      }
     }
   });
   alert('✅ ຢືນຢັນຮັບເງິນສຳເລັດ!\nເລກທີ: '+docno+'\nຈຳນວນສະລີບ: '+slips.length+' ໃບ');
