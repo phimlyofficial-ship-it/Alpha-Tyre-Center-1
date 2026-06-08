@@ -1284,7 +1284,7 @@ input[type="date"]::-webkit-datetime-edit-year-field{
         <label>ລະຫັດ / ຊື່ລູກຄ້າ</label>
         <input type="text" id="ci-custcode" placeholder="ຄົ້ນຫາ ຫຼື ພິມໃໝ່..." autocomplete="off"
           oninput="onCiCustSearch(this.value)" onfocus="onCiCustSearch(this.value)">
-        <div id="ci-cust-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border2);border-radius:8px;z-index:9999;max-height:200px;overflow-y:auto;box-shadow:0 4px 14px rgba(0,0,0,0.12)"></div>
+        <div id="ci-cust-drop" style="display:none;position:fixed;background:#fff;border:1px solid var(--border2);border-radius:8px;z-index:99999;max-height:220px;overflow-y:auto;box-shadow:0 4px 14px rgba(0,0,0,0.18);min-width:280px"></div>
       </div>
       <div class="fld">
         <label>ຊື່ລູກຄ້າ</label>
@@ -6655,6 +6655,14 @@ function renderCiHistory(){
 function onCiCustSearch(q){
   const drop = document.getElementById('ci-cust-drop');
   if(!drop) return;
+  // ກຳນວນ position fixed ຈາກ input
+  const inp = document.getElementById('ci-custcode');
+  if(inp){
+    const r = inp.getBoundingClientRect();
+    drop.style.top  = (r.bottom+2)+'px';
+    drop.style.left = r.left+'px';
+    drop.style.width= r.width+'px';
+  }
   const query = (q||'').toLowerCase().trim();
   const list = query
     ? customers.filter(c=>c.name.toLowerCase().includes(query)||c.code.toLowerCase().includes(query)||(c.phone||'').includes(query))
