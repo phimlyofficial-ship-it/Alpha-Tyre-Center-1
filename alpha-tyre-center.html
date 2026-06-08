@@ -6512,8 +6512,12 @@ function saveCiJob(){
     ciCnt++;
     showHoToast('🚗 ຮັບລົດສຳເລັດ', job.docno+' · '+plate+(job.custname?' · '+job.custname:''), true);
   }
-  // Sync ຂຶ້ນ Google Sheets ທັນທີ
-  gasSaveCiJob(job).catch(()=>setSyncStatus('error','ບັນທຶກ CI ບໍ່ສຳເລັດ'));
+  // Sync ຂຶ້ນ Google Sheets — serialize arrays ເປັນ JSON string
+  const jobForGas = {...job,
+    items:     JSON.stringify(job.items||[]),
+    mechanics: JSON.stringify(job.mechanics||[])
+  };
+  gasSaveCiJob(jobForGas).catch(()=>setSyncStatus('error','ບັນທຶກ CI ບໍ່ສຳເລັດ'));
 
   closeCiForm();
   renderCiSummary();
@@ -7185,7 +7189,18 @@ async function gasPullAll() {
   // --- CI Jobs ---
   if (data.ciJobs) {
     ciJobs.length = 0;
-    data.ciJobs.forEach(j => ciJobs.push(j));
+    data.ciJobs.forEach(j => {
+      // parse items/mechanics ຖ້າ Sheets ສົ່ງກັບມາເປັນ string
+      if(typeof j.items === 'string'){
+        try{ j.items = JSON.parse(j.items); }catch(e){ j.items = []; }
+      }
+      if(!Array.isArray(j.items)) j.items = [];
+      if(typeof j.mechanics === 'string'){
+        try{ j.mechanics = JSON.parse(j.mechanics); }catch(e){ j.mechanics = []; }
+      }
+      if(!Array.isArray(j.mechanics)) j.mechanics = [];
+      ciJobs.push(j);
+    });
     if (typeof renderCiSummary === 'function') renderCiSummary();
   }
 
