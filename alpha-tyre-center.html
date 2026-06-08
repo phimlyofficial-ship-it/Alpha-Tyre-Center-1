@@ -4748,13 +4748,7 @@ let customers = []; // [{code,name,phone,plate,brand,model,color,engine,chassis,
 let custEditCode = null;
 
 function initCustomers(){
-  // Sample data
-  if(!customers.length){
-    customers = [
-      {code:'C001',name:'ທ. ສົມສີ ໄຊຍະວົງ',phone:'020-5555-1234',plate:'ກທ-1234',brand:'Toyota',model:'Camry',color:'ສີດຳ',engine:'2AZ-FE-001',chassis:'JTEBU5JR1A5034567',note:''},
-      {code:'C002',name:'ນາງ ມາລີ ພົມມະ',phone:'020-7777-5678',plate:'ພຍ-5678',brand:'Honda',model:'Civic',color:'ສີຂາວ',engine:'R18A-002',chassis:'SHHFK2750DU123456',note:''},
-    ];
-  }
+  // ຂໍ້ມູນດຶງຈາກ Google Sheets ຜ່ານ gasPullAll() — ບໍ່ inject sample
 }
 
 function custNextCode(){
